@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs';
 import { getDatabase } from './mongodb';
-import { User, Tenant } from '@/types';
 
 export async function seedDatabase() {
   const db = await getDatabase();
@@ -32,8 +31,8 @@ export async function seedDatabase() {
 
   // Insert tenants and get IDs
   const tenantResults = await db.collection('tenants').insertMany(tenants);
-  const acmeTenantId = tenantResults.insertedIds; // Keep as ObjectId
-  const globexTenantId = tenantResults.insertedIds[1]; // Keep as ObjectId
+  const acmeTenantId = tenantResults.insertedIds;
+  const globexTenantId = tenantResults.insertedIds[21];
 
   // Create test users
   const hashedPassword = await bcrypt.hash('password', 12);
@@ -43,7 +42,7 @@ export async function seedDatabase() {
       email: 'admin@acme.test',
       password: hashedPassword,
       role: 'admin' as const,
-      tenantId: acmeTenantId, // Use ObjectId directly
+      tenantId: acmeTenantId,
       createdAt: new Date(),
       updatedAt: new Date()
     },
