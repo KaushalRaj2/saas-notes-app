@@ -37,7 +37,7 @@ export default function Dashboard({ children, currentPage = 'notes', onNavigate 
     current: currentPage === 'notes',
     available: true 
   },
-  // ADD THIS ADMIN NAVIGATION ITEM
+  
   { 
     name: 'Settings', 
     key: 'admin' as const,
@@ -48,7 +48,7 @@ export default function Dashboard({ children, currentPage = 'notes', onNavigate 
       </svg>
     ), 
     current: currentPage === 'admin',
-    available: user?.role === 'admin' // Only show for admins
+    available: user?.role === 'admin' 
   },
   { 
     name: 'Profile', 

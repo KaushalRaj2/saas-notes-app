@@ -1,11 +1,11 @@
 import { ObjectId } from 'mongodb';
 
 export interface User {
-  _id?: ObjectId | string; // Support both ObjectId and string
+  _id?: ObjectId | string; 
   email: string;
   password: string;
   role: 'admin' | 'member';
-  tenantId: ObjectId | string; // Support both types
+  tenantId: ObjectId | string; 
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -13,7 +13,7 @@ export interface User {
 export interface Tenant {
   _id?: ObjectId | string;
   name: string;
-  slug: string; // 'acme' or 'globex'
+  slug: string; 
   plan: 'free' | 'pro';
   noteLimit: number;
   createdAt?: Date;

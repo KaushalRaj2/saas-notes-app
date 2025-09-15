@@ -30,9 +30,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load token from localStorage on mount
+  
   useEffect(() => {
-    // Only run on client side
+    
     if (typeof window !== 'undefined') {
       const savedToken = localStorage.getItem('token');
       if (savedToken) {
@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(data.user);
       } else {
         console.log('👤 Invalid token, clearing storage');
-        // Invalid token
+        
         localStorage.removeItem('token');
         setToken(null);
       }
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('📥 Login response status:', response.status);
       console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
       
-      // Check if response is JSON
+      
       const contentType = response.headers.get('content-type');
       console.log('📄 Content-Type:', contentType);
 
@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(data.user);
         setToken(data.token);
         
-        // Only use localStorage on client side
+        
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', data.token);
         }
@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setToken(null);
     
-    // Only use localStorage on client side
+    
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
     }

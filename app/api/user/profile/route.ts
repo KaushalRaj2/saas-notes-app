@@ -14,13 +14,13 @@ export async function GET(request: NextRequest) {
   try {
     const { user, db } = auth;
     
-    // Get fresh user data
+    
     const userData = await db.collection('users').findOne(
       { _id: new ObjectId(user.userId) },
       { projection: { password: 0 } }
     );
 
-    // Get tenant data
+    
     const tenantData = await db.collection('tenants').findOne({
       _id: new ObjectId(user.tenantId)
     });

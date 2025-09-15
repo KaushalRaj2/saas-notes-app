@@ -1,14 +1,14 @@
-// scripts/seed.js
+
 const path = require('path');
 
-// Load environment variables from .env.local (not just .env)
+
 require('dotenv').config({ path: path.join(__dirname, '..', '.env.local') });
 
 const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
 
 async function seedDatabase() {
-  console.log('Using MongoDB URI:', process.env.MONGODB_URI); // Debug log
+  console.log('Using MongoDB URI:', process.env.MONGODB_URI); 
   
   const client = new MongoClient(process.env.MONGODB_URI);
   
@@ -17,13 +17,13 @@ async function seedDatabase() {
     const db = client.db('saas-notes-db');
     
     console.log('🗑️ Clearing existing data...');
-    // Clear existing data
+    
     await db.collection('tenants').deleteMany({});
     await db.collection('users').deleteMany({});
     await db.collection('notes').deleteMany({});
     
     console.log('🏢 Creating tenants...');
-    // Create tenants
+    
     const tenants = [
       {
         name: 'Acme Corporation',
@@ -43,7 +43,7 @@ async function seedDatabase() {
       }
     ];
 
-    // Insert tenants and get their IDs
+    
     const tenantResults = await db.collection('tenants').insertMany(tenants);
     const tenantIds = Object.values(tenantResults.insertedIds);
     
@@ -53,7 +53,7 @@ async function seedDatabase() {
     const globexTenantId = tenantIds[1];
 
     console.log('👥 Creating users...');
-    // Create test users with proper tenant linking
+    
     const hashedPassword = await bcrypt.hash('password', 12);
     
     const users = [
@@ -61,7 +61,7 @@ async function seedDatabase() {
         email: 'admin@acme.test',
         password: hashedPassword,
         role: 'admin',
-        tenantId: acmeTenantId, // Properly linked
+        tenantId: acmeTenantId, 
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -69,7 +69,7 @@ async function seedDatabase() {
         email: 'user@acme.test',
         password: hashedPassword,
         role: 'member',
-        tenantId: acmeTenantId, // Properly linked
+        tenantId: acmeTenantId, 
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -77,7 +77,7 @@ async function seedDatabase() {
         email: 'admin@globex.test',
         password: hashedPassword,
         role: 'admin',
-        tenantId: globexTenantId, // Properly linked
+        tenantId: globexTenantId, 
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -85,7 +85,7 @@ async function seedDatabase() {
         email: 'user@globex.test',
         password: hashedPassword,
         role: 'member',
-        tenantId: globexTenantId, // Properly linked
+        tenantId: globexTenantId, 
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -94,7 +94,7 @@ async function seedDatabase() {
     const userResults = await db.collection('users').insertMany(users);
     console.log('✅ Users created with IDs:', Object.values(userResults.insertedIds).map(id => id.toString()));
     
-    // Verify the linking worked
+    
     console.log('🔍 Verifying user-tenant linking...');
     for (const user of users) {
       const createdUser = await db.collection('users').findOne({ email: user.email });

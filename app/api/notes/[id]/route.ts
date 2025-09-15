@@ -3,7 +3,7 @@ import { authenticateUser } from '@/lib/middleware/auth';
 import { ensureTenantIsolation } from '@/lib/middleware/tenant';
 import { ObjectId } from 'mongodb';
 
-// GET /api/notes/[id] - Get single note
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -18,7 +18,7 @@ export async function GET(
 
   try {
     const { user, db } = auth;
-    const { id } = await params; // Await params
+    const { id } = await params; 
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -27,7 +27,7 @@ export async function GET(
       );
     }
 
-    // Find note with tenant isolation
+    
     const note = await db.collection('notes').findOne(
       ensureTenantIsolation({ _id: new ObjectId(id) }, user.tenantId)
     );
@@ -39,7 +39,7 @@ export async function GET(
       );
     }
 
-    // Get user info
+    
     const noteUser = await db.collection('users').findOne(
       { _id: note.userId },
       { projection: { email: 1 } }
@@ -68,7 +68,7 @@ export async function GET(
   }
 }
 
-// PUT /api/notes/[id] - Update note
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -84,7 +84,7 @@ export async function PUT(
   try {
     const { user, db } = auth;
     const { title, content } = await request.json();
-    const { id } = await params; // Await params
+    const { id } = await params; 
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -100,12 +100,12 @@ export async function PUT(
       );
     }
 
-    // Update with tenant isolation and ownership check
+    
     const result = await db.collection('notes').findOneAndUpdate(
       ensureTenantIsolation(
         { 
           _id: new ObjectId(id),
-          userId: new ObjectId(user.userId) // Only owner can edit
+          userId: new ObjectId(user.userId) 
         }, 
         user.tenantId
       ),
@@ -149,7 +149,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/notes/[id] - Delete note
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -164,7 +164,7 @@ export async function DELETE(
 
   try {
     const { user, db } = auth;
-    const { id } = await params; // Await params
+    const { id } = await params; 
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -173,12 +173,11 @@ export async function DELETE(
       );
     }
 
-    // Delete with tenant isolation and ownership check
     const result = await db.collection('notes').findOneAndDelete(
       ensureTenantIsolation(
         { 
           _id: new ObjectId(id),
-          userId: new ObjectId(user.userId) // Only owner can delete
+          userId: new ObjectId(user.userId)
         }, 
         user.tenantId
       )

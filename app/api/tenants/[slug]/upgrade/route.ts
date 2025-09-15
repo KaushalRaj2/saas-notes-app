@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateUser } from '@/lib/middleware/auth';
-// import { ObjectId } from 'mongodb';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +19,7 @@ export async function POST(
   const { user, db } = auth;
   const { slug } = await params;
 
-  // Only admins can upgrade subscription
+  
   if (user.role !== 'admin') {
     return NextResponse.json(
       { error: 'Access denied. Only admins can upgrade subscriptions.' },
@@ -28,7 +28,7 @@ export async function POST(
   }
 
   try {
-    // Find tenant by slug
+    
     const tenant = await db.collection('tenants').findOne({ slug });
     if (!tenant) {
       return NextResponse.json(
@@ -37,7 +37,7 @@ export async function POST(
       );
     }
 
-    // Verify admin belongs to this tenant
+    
     if (tenant._id.toString() !== user.tenantId) {
       return NextResponse.json(
         { error: 'Access denied. You can only upgrade your own tenant.' },
@@ -45,7 +45,7 @@ export async function POST(
       );
     }
 
-    // Check if already pro
+    
     if (tenant.plan === 'pro') {
       return NextResponse.json(
         { error: 'Tenant is already on Pro plan' },
@@ -53,13 +53,13 @@ export async function POST(
       );
     }
 
-    // Upgrade to Pro plan
+    
     const updatedTenant = await db.collection('tenants').findOneAndUpdate(
       { _id: tenant._id },
       {
         $set: {
           plan: 'pro',
-          noteLimit: -1, // Unlimited notes
+          noteLimit: -1, 
           upgradedAt: new Date(),
           updatedAt: new Date()
         }
@@ -67,7 +67,7 @@ export async function POST(
       { returnDocument: 'after' }
     );
 
-    // Handle null case (should not happen since we found the tenant)
+    
     if (!updatedTenant) {
       return NextResponse.json(
         { error: 'Failed to update tenant' },

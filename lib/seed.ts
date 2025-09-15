@@ -4,12 +4,12 @@ import { getDatabase } from './mongodb';
 export async function seedDatabase() {
   const db = await getDatabase();
   
-  // Clear existing data
+  
   await db.collection('tenants').deleteMany({});
   await db.collection('users').deleteMany({});
   await db.collection('notes').deleteMany({});
   
-  // Create tenants
+  
   const tenants = [
     {
       name: 'Acme Corporation',
@@ -29,12 +29,12 @@ export async function seedDatabase() {
     }
   ];
 
-  // Insert tenants and get IDs
+  
   const tenantResults = await db.collection('tenants').insertMany(tenants);
   const acmeTenantId = tenantResults.insertedIds;
   const globexTenantId = tenantResults.insertedIds[21];
 
-  // Create test users
+  
   const hashedPassword = await bcrypt.hash('password', 12);
   
   const users = [

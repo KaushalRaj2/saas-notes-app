@@ -28,16 +28,16 @@ export async function checkSubscriptionLimit(
     tenantId: new ObjectId(tenantId)
   });
   
-  // Pro plan has unlimited notes (-1 or Infinity)
+  
   if (tenant.plan === 'pro' || tenant.noteLimit === -1) {
     return {
       allowed: true,
-      limit: -1, // Unlimited for display
+      limit: -1, 
       current: currentCount
     };
   }
   
-  // Free plan has limited notes
+  
   const limit = tenant.noteLimit || 3;
   
   return {

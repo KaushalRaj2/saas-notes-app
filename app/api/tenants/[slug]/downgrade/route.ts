@@ -18,7 +18,7 @@ export async function POST(
   const { user, db } = auth;
   const { slug } = await params;
 
-  // Only admins can downgrade subscription
+  
   if (user.role !== 'admin') {
     return NextResponse.json(
       { error: 'Access denied. Only admins can manage subscriptions.' },
@@ -27,7 +27,7 @@ export async function POST(
   }
 
   try {
-    // Find tenant by slug
+    
     const tenant = await db.collection('tenants').findOne({ slug });
     if (!tenant) {
       return NextResponse.json(
@@ -36,7 +36,7 @@ export async function POST(
       );
     }
 
-    // Verify admin belongs to this tenant
+    
     if (tenant._id.toString() !== user.tenantId) {
       return NextResponse.json(
         { error: 'Access denied. You can only manage your own tenant.' },
@@ -44,7 +44,7 @@ export async function POST(
       );
     }
 
-    // Check if already on free plan
+    
     if (tenant.plan === 'free') {
       return NextResponse.json(
         { error: 'Tenant is already on Free plan' },
@@ -52,13 +52,13 @@ export async function POST(
       );
     }
 
-    // Downgrade to Free plan
+    
     const updatedTenant = await db.collection('tenants').findOneAndUpdate(
       { _id: tenant._id },
       {
         $set: {
           plan: 'free',
-          noteLimit: 3, // Free plan limit
+          noteLimit: 3, 
           downgradedAt: new Date(),
           updatedAt: new Date()
         }

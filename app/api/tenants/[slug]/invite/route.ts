@@ -20,7 +20,7 @@ export async function POST(
   const { user, db } = auth;
   const { slug } = await params;
 
-  // Only admins can invite users
+  
   if (user.role !== 'admin') {
     return NextResponse.json(
       { error: 'Access denied. Only admins can invite users.' },
@@ -45,7 +45,7 @@ export async function POST(
       );
     }
 
-    // Find tenant by slug
+    
     const tenant = await db.collection('tenants').findOne({ slug });
     if (!tenant) {
       return NextResponse.json(
@@ -54,7 +54,7 @@ export async function POST(
       );
     }
 
-    // Verify admin belongs to this tenant
+    
     if (tenant._id.toString() !== user.tenantId) {
       return NextResponse.json(
         { error: 'Access denied. You can only invite users to your own tenant.' },
@@ -62,7 +62,7 @@ export async function POST(
       );
     }
 
-    // Check if user already exists
+    
     const existingUser = await db.collection('users').findOne({ email });
     if (existingUser) {
       return NextResponse.json(
@@ -71,12 +71,12 @@ export async function POST(
       );
     }
 
-    // Create new user
+    
     const hashedPassword = await bcrypt.hash(password, 12);
     const newUser = {
       email,
       password: hashedPassword,
-      role: role as 'admin' | 'member', // Type assertion
+      role: role as 'admin' | 'member', 
       tenantId: tenant._id,
       invitedBy: new ObjectId(user.userId),
       createdAt: new Date(),

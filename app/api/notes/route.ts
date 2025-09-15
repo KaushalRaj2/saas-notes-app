@@ -5,7 +5,7 @@ import { ObjectId } from 'mongodb';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/notes - List all notes for user's tenant
+
 export async function GET(request: NextRequest) {
   const auth = await authenticateUser(request);
   if (!auth) {
@@ -18,13 +18,13 @@ export async function GET(request: NextRequest) {
   try {
     const { user, db } = auth;
     
-    // Get notes with tenant isolation
+    
     const notes = await db.collection('notes')
       .find(ensureTenantIsolation({}, user.tenantId))
       .sort({ createdAt: -1 })
       .toArray();
 
-    // Include user info for each note
+    
     const notesWithUsers = await Promise.all(
       notes.map(async (note) => {
         const noteUser = await db.collection('users').findOne(
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/notes - Create new note
+
 export async function POST(request: NextRequest) {
   const auth = await authenticateUser(request);
   if (!auth) {
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get tenant info for better error messaging
+    
     const tenant = await getTenantInfo(db, user.tenantId);
     if (!tenant) {
       return NextResponse.json(
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check subscription limits
+    
     const limitCheck = await checkSubscriptionLimit(db, user.tenantId, 'notes');
     if (!limitCheck.allowed) {
       const planName = tenant.plan === 'pro' ? 'Pro' : 'Free';
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create note with tenant isolation
+    
     const newNote = {
       title,
       content,
