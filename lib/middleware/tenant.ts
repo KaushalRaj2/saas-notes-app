@@ -1,4 +1,3 @@
-import { JWTPayload } from '@/types';
 import { Db, ObjectId } from 'mongodb';
 
 export async function getTenantInfo(db: Db, tenantId: string) {
@@ -8,7 +7,7 @@ export async function getTenantInfo(db: Db, tenantId: string) {
   return tenant;
 }
 
-export function ensureTenantIsolation(query: any, tenantId: string) {
+export function ensureTenantIsolation(query: Record<string, unknown>, tenantId: string) {
   return {
     ...query,
     tenantId: new ObjectId(tenantId)
