@@ -46,7 +46,7 @@ export default function NoteModal({ isOpen, onClose, onSave, note }: NoteModalPr
     e.preventDefault();
     
     if (!title.trim() || !content.trim()) {
-      setError('Title and content are required');
+      setError('Both title and content are required');
       return;
     }
 
@@ -74,13 +74,12 @@ export default function NoteModal({ isOpen, onClose, onSave, note }: NoteModalPr
       } else {
         setError(data.error || `Failed to ${note ? 'update' : 'create'} note`);
         
-        // Show specific error for subscription limits
         if (response.status === 403 && data.details) {
           setError(data.details);
         }
       }
     } catch (err) {
-      setError('Network error');
+      setError('Network error occurred');
     } finally {
       setLoading(false);
     }
@@ -89,78 +88,117 @@ export default function NoteModal({ isOpen, onClose, onSave, note }: NoteModalPr
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {note ? 'Edit Note' : 'Create New Note'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-            disabled={loading}
-          >
-            ✕
-          </button>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-              Title
-            </label>
-            <input
-              type="text"
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter note title"
-              disabled={loading}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
-              Content
-            </label>
-            <textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter note content"
-              disabled={loading}
-              required
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity"></div>
+      
+      {/* Modal */}
+      <div className="flex items-center justify-center min-h-full p-4">
+        <div className="relative bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {note ? 'Edit Note' : 'New Note'}
+            </h2>
+            
             <button
-              type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+              className="text-gray-400 hover:text-gray-600 p-1 rounded"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? 'Saving...' : (note ? 'Update' : 'Create')}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
-        </form>
+
+          {/* Error Alert */}
+          {error && (
+            <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <svg className="w-4 h-4 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-red-700 text-sm">{error}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
+            <div className="flex-1 p-6 space-y-4">
+              {/* Title Field */}
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none text-lg font-medium"
+                  placeholder="Note title..."
+                  disabled={loading}
+                  required
+                />
+              </div>
+
+              {/* Content Field */}
+              <div className="flex-1">
+                <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+                  Content
+                </label>
+                <textarea
+                  id="content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  rows={12}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none resize-none"
+                  placeholder="Start writing your note..."
+                  disabled={loading}
+                  required
+                />
+                <div className="flex justify-between items-center mt-1 text-xs text-gray-500">
+                  <span>Markdown supported</span>
+                  <span>{content.length} characters</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors duration-150 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              
+              <button
+                type="submit"
+                disabled={loading || !title.trim() || !content.trim()}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {note ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  <>
+                    {note ? 'Update Note' : 'Create Note'}
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
