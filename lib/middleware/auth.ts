@@ -2,10 +2,11 @@ import { NextRequest } from 'next/server';
 import { verifyJWT, extractTokenFromHeader } from '@/lib/jwt';
 import { getDatabase } from '@/lib/mongodb';
 import { JWTPayload } from '@/types';
+import { Db } from 'mongodb';
 
 export async function authenticateUser(request: NextRequest): Promise<{
   user: JWTPayload;
-  db: any;
+  db: Db;
 } | null> {
   const authHeader = request.headers.get('authorization');
   const token = extractTokenFromHeader(authHeader);
