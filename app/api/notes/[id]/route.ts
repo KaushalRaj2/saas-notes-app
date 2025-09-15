@@ -6,7 +6,7 @@ import { ObjectId } from 'mongodb';
 // GET /api/notes/[id] - Get single note
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await authenticateUser(request);
   if (!auth) {
@@ -18,8 +18,9 @@ export async function GET(
 
   try {
     const { user, db } = auth;
+    const { id } = await params; // Await params
 
-    if (!ObjectId.isValid(params.id)) {
+    if (!ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid note ID' },
         { status: 400 }
@@ -28,7 +29,7 @@ export async function GET(
 
     // Find note with tenant isolation
     const note = await db.collection('notes').findOne(
-      ensureTenantIsolation({ _id: new ObjectId(params.id) }, user.tenantId)
+      ensureTenantIsolation({ _id: new ObjectId(id) }, user.tenantId)
     );
 
     if (!note) {
@@ -70,7 +71,7 @@ export async function GET(
 // PUT /api/notes/[id] - Update note
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await authenticateUser(request);
   if (!auth) {
@@ -83,8 +84,9 @@ export async function PUT(
   try {
     const { user, db } = auth;
     const { title, content } = await request.json();
+    const { id } = await params; // Await params
 
-    if (!ObjectId.isValid(params.id)) {
+    if (!ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid note ID' },
         { status: 400 }
@@ -102,7 +104,7 @@ export async function PUT(
     const result = await db.collection('notes').findOneAndUpdate(
       ensureTenantIsolation(
         { 
-          _id: new ObjectId(params.id),
+          _id: new ObjectId(id),
           userId: new ObjectId(user.userId) // Only owner can edit
         }, 
         user.tenantId
@@ -150,7 +152,7 @@ export async function PUT(
 // DELETE /api/notes/[id] - Delete note
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await authenticateUser(request);
   if (!auth) {
@@ -162,8 +164,9 @@ export async function DELETE(
 
   try {
     const { user, db } = auth;
+    const { id } = await params; // Await params
 
-    if (!ObjectId.isValid(params.id)) {
+    if (!ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid note ID' },
         { status: 400 }
@@ -174,7 +177,7 @@ export async function DELETE(
     const result = await db.collection('notes').findOneAndDelete(
       ensureTenantIsolation(
         { 
-          _id: new ObjectId(params.id),
+          _id: new ObjectId(id),
           userId: new ObjectId(user.userId) // Only owner can delete
         }, 
         user.tenantId
