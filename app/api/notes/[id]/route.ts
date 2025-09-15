@@ -1,0 +1,210 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { authenticateUser } from '@/lib/middleware/auth';
+import { ensureTenantIsolation } from '@/lib/middleware/tenant';
+import { ObjectId } from 'mongodb';
+
+// GET /api/notes/[id] - Get single note
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const auth = await authenticateUser(request);
+  if (!auth) {
+    return NextResponse.json(
+      { error: 'Authentication required' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const { user, db } = auth;
+
+    if (!ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid note ID' },
+        { status: 400 }
+      );
+    }
+
+    // Find note with tenant isolation
+    const note = await db.collection('notes').findOne(
+      ensureTenantIsolation({ _id: new ObjectId(params.id) }, user.tenantId)
+    );
+
+    if (!note) {
+      return NextResponse.json(
+        { error: 'Note not found' },
+        { status: 404 }
+      );
+    }
+
+    // Get user info
+    const noteUser = await db.collection('users').findOne(
+      { _id: note.userId },
+      { projection: { email: 1 } }
+    );
+
+    return NextResponse.json({
+      note: {
+        id: note._id.toString(),
+        title: note.title,
+        content: note.content,
+        createdAt: note.createdAt,
+        updatedAt: note.updatedAt,
+        user: {
+          id: note.userId.toString(),
+          email: noteUser?.email || 'Unknown'
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Note fetch error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/notes/[id] - Update note
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const auth = await authenticateUser(request);
+  if (!auth) {
+    return NextResponse.json(
+      { error: 'Authentication required' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const { user, db } = auth;
+    const { title, content } = await request.json();
+
+    if (!ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid note ID' },
+        { status: 400 }
+      );
+    }
+
+    if (!title || !content) {
+      return NextResponse.json(
+        { error: 'Title and content are required' },
+        { status: 400 }
+      );
+    }
+
+    // Update with tenant isolation and ownership check
+    const result = await db.collection('notes').findOneAndUpdate(
+      ensureTenantIsolation(
+        { 
+          _id: new ObjectId(params.id),
+          userId: new ObjectId(user.userId) // Only owner can edit
+        }, 
+        user.tenantId
+      ),
+      {
+        $set: {
+          title,
+          content,
+          updatedAt: new Date()
+        }
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
+      return NextResponse.json(
+        { error: 'Note not found or access denied' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      note: {
+        id: result._id.toString(),
+        title: result.title,
+        content: result.content,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
+        user: {
+          id: user.userId,
+          email: user.email
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Note update error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/notes/[id] - Delete note
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const auth = await authenticateUser(request);
+  if (!auth) {
+    return NextResponse.json(
+      { error: 'Authentication required' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const { user, db } = auth;
+
+    if (!ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid note ID' },
+        { status: 400 }
+      );
+    }
+
+    // Delete with tenant isolation and ownership check
+    const result = await db.collection('notes').findOneAndDelete(
+      ensureTenantIsolation(
+        { 
+          _id: new ObjectId(params.id),
+          userId: new ObjectId(user.userId) // Only owner can delete
+        }, 
+        user.tenantId
+      )
+    );
+
+    if (!result) {
+      return NextResponse.json(
+        { error: 'Note not found or access denied' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      message: 'Note deleted successfully',
+      deletedNote: {
+        id: result._id.toString(),
+        title: result.title
+      }
+    });
+
+  } catch (error) {
+    console.error('Note deletion error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200 });
+}

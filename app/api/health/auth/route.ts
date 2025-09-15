@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { getDatabase } from '@/lib/mongodb';
 import { signJWT } from '@/lib/jwt';
+import { ObjectId } from 'mongodb';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     const db = await getDatabase();
     
-    // Find user
+    // Find user with tenant info
     const user = await db.collection('users').findOne({ email });
     if (!user) {
       return NextResponse.json(
@@ -35,7 +36,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get tenant info
-    const tenant = await db.collection('tenants').findOne({ _id: user.tenantId });
+    const tenant = await db.collection('tenants').findOne({ 
+      _id: new ObjectId(user.tenantId) 
+    });
     if (!tenant) {
       return NextResponse.json(
         { error: 'Tenant not found' },
@@ -62,7 +65,8 @@ export async function POST(request: NextRequest) {
           id: tenant._id.toString(),
           name: tenant.name,
           slug: tenant.slug,
-          plan: tenant.plan
+          plan: tenant.plan,
+          noteLimit: tenant.noteLimit
         }
       }
     });
@@ -77,5 +81,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function OPTIONS() {
-  return new NextResponse(null, { status: 200 });
+  return new NextResponse(null, { 
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }
+  });
 }
