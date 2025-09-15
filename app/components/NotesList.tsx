@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 interface Note {
@@ -25,11 +25,7 @@ export default function NotesList({ onEditNote, refreshTrigger }: NotesListProps
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title'>('newest');
   const { token, user } = useAuth();
 
-  useEffect(() => {
-    fetchNotes();
-  }, [refreshTrigger]);
-
-  const fetchNotes = async () => {
+  const fetchNotes = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/notes', {
@@ -48,7 +44,11 @@ export default function NotesList({ onEditNote, refreshTrigger }: NotesListProps
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchNotes();
+  }, [fetchNotes, refreshTrigger]);
 
   const deleteNote = async (id: string) => {
     if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) return;
@@ -74,9 +74,6 @@ export default function NotesList({ onEditNote, refreshTrigger }: NotesListProps
       day: 'numeric',
     });
 
-  const limitDisplay = user?.tenant.noteLimit === -1 ? '∞' : user?.tenant.noteLimit;
-
-  // Filter and sort notes
   const filteredNotes = notes
     .filter(note => 
       note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,7 +118,6 @@ export default function NotesList({ onEditNote, refreshTrigger }: NotesListProps
 
   return (
     <div className="space-y-4">
-      {/* Search and Filter Bar */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
@@ -153,12 +149,11 @@ export default function NotesList({ onEditNote, refreshTrigger }: NotesListProps
         <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
           <span>{filteredNotes.length} notes</span>
           <span>
-            {user?.tenant.plan} plan • {user?.tenant.noteLimit === -1 ? 'Unlimited' : `${user?.tenant.noteLimit} limit`}
+            {user?.tenant?.plan} plan • {user?.tenant?.noteLimit === -1 ? 'Unlimited' : `${user?.tenant?.noteLimit} limit`}
           </span>
         </div>
       </div>
 
-      {/* Empty State */}
       {filteredNotes.length === 0 && !loading && (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -186,7 +181,6 @@ export default function NotesList({ onEditNote, refreshTrigger }: NotesListProps
         </div>
       )}
 
-      {/* Notes Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredNotes.map(note => (
           <div
@@ -194,7 +188,6 @@ export default function NotesList({ onEditNote, refreshTrigger }: NotesListProps
             className="bg-white rounded-lg border border-gray-200 p-4 hover:border-gray-300 hover:shadow-sm transition-all duration-150 cursor-pointer group"
             onClick={() => onEditNote(note)}
           >
-            {/* Note Header */}
             <div className="flex justify-between items-start mb-3">
               <h3 className="font-semibold text-gray-900 text-base truncate flex-1 group-hover:text-green-700 transition-colors">
                 {note.title}
@@ -231,14 +224,12 @@ export default function NotesList({ onEditNote, refreshTrigger }: NotesListProps
               </div>
             </div>
 
-            {/* Content Preview */}
             <div className="mb-4">
               <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">
                 {note.content.length > 120 ? `${note.content.slice(0, 120)}...` : note.content}
               </p>
             </div>
 
-            {/* Footer */}
             <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
               <div className="flex items-center space-x-2">
                 <div className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center">

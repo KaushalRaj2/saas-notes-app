@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Dashboard from './Dashboard';
 import NotesList from './NotesList';
@@ -73,10 +73,9 @@ export default function NotesApp() {
         }
         return <AdminPanel />;
       
-      default: // 'notes'
+      default:
         return (
           <div className="space-y-6">
-            {/* Notes Header */}
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-semibold text-gray-900">All Notes</h2>
@@ -95,7 +94,6 @@ export default function NotesApp() {
               </button>
             </div>
 
-            {/* Notes List */}
             <NotesList 
               onEditNote={handleEditNote}
               refreshTrigger={refreshTrigger}
@@ -109,7 +107,6 @@ export default function NotesApp() {
     <Dashboard currentPage={currentView} onNavigate={handleNavigate}>
       {renderContent()}
       
-      {/* Create/Edit Modal */}
       <NoteModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
@@ -120,7 +117,6 @@ export default function NotesApp() {
   );
 }
 
-// Dashboard Home Component with Real Data
 function DashboardHome({ refreshTrigger }: { refreshTrigger: number }) {
   const { user, token } = useAuth();
   const [stats, setStats] = useState({
@@ -135,11 +131,7 @@ function DashboardHome({ refreshTrigger }: { refreshTrigger: number }) {
     icon: string;
   }>>([]);
 
-  useEffect(() => {
-    fetchDashboardStats();
-  }, [refreshTrigger, token]);
-
-  const fetchDashboardStats = async () => {
+  const fetchDashboardStats = useCallback(async () => {
     if (!token) return;
     
     try {
@@ -151,7 +143,6 @@ function DashboardHome({ refreshTrigger }: { refreshTrigger: number }) {
         const data = await response.json();
         const notes = data.notes || [];
         
-        // Calculate stats for current tenant only
         const totalNotes = notes.length;
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -160,7 +151,6 @@ function DashboardHome({ refreshTrigger }: { refreshTrigger: number }) {
           new Date(note.createdAt) >= oneWeekAgo
         ).length;
 
-        // Get recent activity (last 3 notes)
         const recentNotes = notes
           .sort((a: Note, b: Note) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 3)
@@ -184,7 +174,11 @@ function DashboardHome({ refreshTrigger }: { refreshTrigger: number }) {
       console.error('Error fetching dashboard stats:', error);
       setStats(prev => ({ ...prev, loading: false }));
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, [fetchDashboardStats, refreshTrigger]);
 
   const formatRelativeTime = (dateString: string) => {
     const now = new Date();
@@ -203,15 +197,13 @@ function DashboardHome({ refreshTrigger }: { refreshTrigger: number }) {
   
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
       <div>
         <h2 className="text-2xl font-semibold text-gray-900 mb-1">
           Good evening, {user?.email?.split('@')[0] || 'User'}
         </h2>
-        <p className="text-gray-600">Here's what's happening with your notes today.</p>
+        <p className="text-gray-600">Here&apos;s what&apos;s happening with your notes today.</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center">
@@ -276,7 +268,6 @@ function DashboardHome({ refreshTrigger }: { refreshTrigger: number }) {
         </div>
       </div>
 
-      {/* Recent Activity */}
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
@@ -303,7 +294,7 @@ function DashboardHome({ refreshTrigger }: { refreshTrigger: number }) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-gray-900">
-                      <span className="font-medium">{activity.action}</span> "{activity.title}"
+                      <span className="font-medium">{activity.action}</span> &ldquo;{activity.title}&rdquo;
                     </p>
                     <p className="text-xs text-gray-500">{activity.time}</p>
                   </div>
@@ -327,7 +318,6 @@ function DashboardHome({ refreshTrigger }: { refreshTrigger: number }) {
   );
 }
 
-// Profile Panel Component with TypeScript Safety
 function ProfilePanel() {
   const { user } = useAuth();
   

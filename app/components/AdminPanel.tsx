@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function AdminPanel() {
@@ -51,14 +51,14 @@ export default function AdminPanel() {
       } else {
         setError(data.error || 'Upgrade failed. Please try again.');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Upgrade error:', error);
       setError('Network error during upgrade. Please check your connection.');
     } finally {
       setIsUpgrading(false);
     }
   };
 
-  // NEW: Handle subscription reset/downgrade
   const handleResetSubscription = async () => {
     if (!confirm('Are you sure you want to reset your subscription to Free plan? This will limit your notes to 3.')) {
       return;
@@ -83,7 +83,8 @@ export default function AdminPanel() {
       } else {
         setError(data.error || 'Downgrade failed. Please try again.');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Downgrade error:', error);
       setError('Network error during downgrade. Please check your connection.');
     } finally {
       setIsDowngrading(false);
@@ -115,26 +116,24 @@ export default function AdminPanel() {
       } else {
         setError(data.error || 'Invitation failed. Please try again.');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Invitation error:', error);
       setError('Network error during invitation. Please check your connection.');
     } finally {
       setIsInviting(false);
     }
   };
 
-  // Get current plan status
   const currentPlan = user?.tenant?.plan || 'free';
   const isPro = currentPlan === 'pro';
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h2 className="text-2xl font-semibold text-gray-900 mb-1">Settings</h2>
         <p className="text-gray-600">Manage your organization settings and team members.</p>
       </div>
 
-      {/* Alert Messages */}
       {message && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center">
@@ -157,9 +156,7 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Subscription Management Card */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center mb-6">
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
@@ -173,7 +170,6 @@ export default function AdminPanel() {
             </div>
           </div>
 
-          {/* Current Plan Status */}
           <div className="mb-6">
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div>
@@ -194,11 +190,9 @@ export default function AdminPanel() {
             </div>
           </div>
 
-          {/* Subscription Actions */}
           <div className="space-y-3">
             {!isPro ? (
               <div>
-                {/* Pro Plan Benefits */}
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 mb-4">
                   <div className="flex items-center mb-3">
                     <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +216,6 @@ export default function AdminPanel() {
                   </ul>
                 </div>
 
-                {/* Upgrade Button */}
                 <button
                   onClick={handleUpgrade}
                   disabled={isUpgrading}
@@ -248,7 +241,6 @@ export default function AdminPanel() {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Pro Status */}
                 <div className="text-center p-6 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,7 +251,6 @@ export default function AdminPanel() {
                   <div className="text-sm text-green-700">You have access to all premium features</div>
                 </div>
 
-                {/* Reset/Downgrade Button */}
                 <button
                   onClick={handleResetSubscription}
                   disabled={isDowngrading}
@@ -287,7 +278,6 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        {/* Team Management Card - Keep existing code */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center mb-6">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
@@ -302,7 +292,6 @@ export default function AdminPanel() {
           </div>
 
           <div className="space-y-6">
-            {/* Team Stats */}
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="text-2xl font-bold text-gray-900 mb-1">4</div>
@@ -314,7 +303,6 @@ export default function AdminPanel() {
               </div>
             </div>
 
-            {/* Invite Button */}
             <button
               onClick={() => setShowInviteForm(!showInviteForm)}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold text-base transition-all duration-150 flex items-center justify-center shadow-sm hover:shadow-md"
@@ -328,7 +316,6 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      {/* Invite Form - Keep existing code */}
       {showInviteForm && (
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center mb-6">

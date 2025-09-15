@@ -78,7 +78,8 @@ export default function NoteModal({ isOpen, onClose, onSave, note }: NoteModalPr
           setError(data.details);
         }
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Note operation error:', error);
       setError('Network error occurred');
     } finally {
       setLoading(false);
@@ -89,13 +90,10 @@ export default function NoteModal({ isOpen, onClose, onSave, note }: NoteModalPr
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
       <div className="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity"></div>
       
-      {/* Modal */}
       <div className="flex items-center justify-center min-h-full p-4">
         <div className="relative bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
-          {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">
               {note ? 'Edit Note' : 'New Note'}
@@ -112,7 +110,6 @@ export default function NoteModal({ isOpen, onClose, onSave, note }: NoteModalPr
             </button>
           </div>
 
-          {/* Error Alert */}
           {error && (
             <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex items-center">
@@ -124,10 +121,8 @@ export default function NoteModal({ isOpen, onClose, onSave, note }: NoteModalPr
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
             <div className="flex-1 p-6 space-y-4">
-              {/* Title Field */}
               <div>
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                   Title
@@ -144,7 +139,6 @@ export default function NoteModal({ isOpen, onClose, onSave, note }: NoteModalPr
                 />
               </div>
 
-              {/* Content Field */}
               <div className="flex-1">
                 <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
                   Content
@@ -166,7 +160,6 @@ export default function NoteModal({ isOpen, onClose, onSave, note }: NoteModalPr
               </div>
             </div>
 
-            {/* Footer */}
             <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
               <button
                 type="button"
