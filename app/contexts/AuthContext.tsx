@@ -32,10 +32,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Load token from localStorage on mount
   useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    if (savedToken) {
-      setToken(savedToken);
-      fetchUserProfile(savedToken);
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      const savedToken = localStorage.getItem('token');
+      if (savedToken) {
+        setToken(savedToken);
+        fetchUserProfile(savedToken);
+      } else {
+        setLoading(false);
+      }
     } else {
       setLoading(false);
     }
@@ -43,22 +48,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (authToken: string) => {
     try {
+      console.log('👤 Fetching user profile...');
+      
       const response = await fetch('/api/user/profile', {
         headers: {
           'Authorization': `Bearer ${authToken}`,
         },
       });
 
+      console.log('👤 Profile response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('👤 Profile data received:', data);
         setUser(data.user);
       } else {
+        console.log('👤 Invalid token, clearing storage');
         // Invalid token
         localStorage.removeItem('token');
         setToken(null);
       }
     } catch (error) {
-      console.error('Profile fetch error:', error);
+      console.error('👤 Profile fetch error:', error);
       localStorage.removeItem('token');
       setToken(null);
     } finally {
@@ -67,34 +78,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
+    console.log('🔑 Starting login process for:', email);
+    
     try {
+      const requestBody = { email, password };
+      console.log('📤 Sending login request:', requestBody);
+
       const response = await fetch('/api/auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(requestBody),
       });
 
-      const data = await response.json();
+      console.log('📥 Login response status:', response.status);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      console.log('📄 Content-Type:', contentType);
+
+      let data;
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+        console.log('📦 Response data:', data);
+      } else {
+        const textData = await response.text();
+        console.log('📄 Response text:', textData);
+        throw new Error(`Invalid response format. Expected JSON, got: ${textData}`);
+      }
 
       if (response.ok) {
+        console.log('✅ Login successful!');
         setUser(data.user);
         setToken(data.token);
-        localStorage.setItem('token', data.token);
+        
+        // Only use localStorage on client side
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('token', data.token);
+        }
+        
         return { success: true };
       } else {
+        console.error('❌ Login failed:', data.error);
         return { success: false, error: data.error || 'Login failed' };
       }
     } catch (error) {
-      return { success: false, error: 'Network error' };
+      console.error('🚨 Login network/parsing error:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Network error' 
+      };
     }
   };
 
   const logout = () => {
+    console.log('🚪 Logging out user');
     setUser(null);
     setToken(null);
-    localStorage.removeItem('token');
+    
+    // Only use localStorage on client side
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+    }
   };
 
   return (

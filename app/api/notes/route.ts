@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateUser } from '@/lib/middleware/auth';
-import { ensureTenantIsolation, checkSubscriptionLimit } from '@/lib/middleware/tenant';
+import { ensureTenantIsolation, checkSubscriptionLimit, getTenantInfo } from '@/lib/middleware/tenant';
 import { ObjectId } from 'mongodb';
+
+export const dynamic = 'force-dynamic';
 
 // GET /api/notes - List all notes for user's tenant
 export async function GET(request: NextRequest) {
@@ -79,15 +81,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get tenant info for better error messaging
+    const tenant = await getTenantInfo(db, user.tenantId);
+    if (!tenant) {
+      return NextResponse.json(
+        { error: 'Tenant not found' },
+        { status: 404 }
+      );
+    }
+
     // Check subscription limits
     const limitCheck = await checkSubscriptionLimit(db, user.tenantId, 'notes');
     if (!limitCheck.allowed) {
+      const planName = tenant.plan === 'pro' ? 'Pro' : 'Free';
+      const upgradeMessage = tenant.plan === 'free' 
+        ? ' Please upgrade to Pro for unlimited notes.' 
+        : '';
+      
       return NextResponse.json(
         { 
           error: 'Note limit reached',
-          details: `You have reached the limit of ${limitCheck.limit} notes for your plan. Please upgrade to create more notes.`,
+          details: `You have reached the limit of ${limitCheck.limit} notes for your ${planName} plan.${upgradeMessage}`,
           limit: limitCheck.limit,
-          current: limitCheck.current
+          current: limitCheck.current,
+          plan: tenant.plan
         },
         { status: 403 }
       );

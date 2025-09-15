@@ -5,6 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import Dashboard from './Dashboard';
 import NotesList from './NotesList';
 import NoteModal from './NoteModal';
+import AdminPanel from './AdminPanel'; // Add this import
 
 interface Note {
   id: string;
@@ -46,6 +47,9 @@ export default function NotesApp() {
   return (
     <Dashboard>
       <div className="space-y-6">
+        {/* Admin Panel - Only show for admins */}
+        <AdminPanel />
+
         {/* Action Bar */}
         <div className="flex justify-between items-center">
           <div>
